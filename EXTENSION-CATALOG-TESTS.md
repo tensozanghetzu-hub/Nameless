@@ -30,7 +30,7 @@ A homepage response and valid Lua syntax do **not** prove that search results, n
 |---|---|---|
 | NovelFull | 200; hash OK; Lua OK | Reachable — novelfull.com |
 | WuxiaWorld.Site | 200; hash OK; Lua OK | Reachable — wuxiaworld.site |
-| Sky-mtl (novel-rare) | 200; hash OK; Lua OK | Reachable — novelrare.com |
+| Sky-mtl(novel-rare) | 200; hash OK; Lua OK | Reachable — novelrare.com |
 | Wildbow (Parahumans) | 200; hash OK; Lua OK | 6/6 active serial sites reachable |
 | Foxaholic | 200; hash OK; Lua OK | Challenge — 403 |
 | Light Novel Bastion | 200; hash OK; Lua OK | Reachable — HTTP 206 |
@@ -60,7 +60,7 @@ A homepage response and valid Lua syntax do **not** prove that search results, n
 | WTR-LAB | 200; **index hash/version mismatch**; Lua OK | Challenge page — HTTP 200 |
 | Novgo (NET) | 200; hash OK; Lua OK | Reachable — HTTP 200 |
 | Read Novel Full | 200; hash OK; Lua OK | Reachable — HTTP 200 |
-| Light Novel Plus | 200; hash OK; Lua OK | Bare host redirected to an unrelated `.vip` news URL; not followed as a workaround |
+| Light Novel Plus | 200; hash OK; Lua OK | Initial probe: DNS failure. Follow-up alternate-host checks were inconsistent and one path redirected to an unrelated `.vip` news URL; not used as a workaround |
 | Free Web Novel | 200; hash OK; Lua OK | Reachable — HTTP 200 |
 | Zetro Translations | 200; hash OK; Lua OK | HTTP 206/HTML response; page availability does not validate the image/parser |
 | Fimfiction | 200; hash OK; Lua OK | Challenge — 403 |
@@ -89,7 +89,7 @@ These are the six catalog icons that still had no usable original/retry image ca
 Website/runtime issues needing an upstream site or extension-author change:
 
 - **Novel Nb, Rain of Snow, NeoSekai, Creative Novels** — respectively DNS, TLS, TLS, or timeout failures in this limited probe. Do not infer permanent shutdown from a single network environment.
-- **Light Novel Plus** — the catalog's bare host redirected to an unrelated `.vip` news URL; alternate `www`/`en` routes were inconsistent (server-busy/503). Nameless will not redirect users to that unrelated host.
+- **Light Novel Plus** — the initial probe hit a DNS error; follow-up `www`/`en` routes were inconsistent (server-busy/503), and one path redirected to an unrelated `.vip` news URL. Nameless will not redirect users to that unrelated host.
 - **Travis Translations** — search result [4](https://storyseedling.com/about-us/) describes Story Seedling as Travis Translations. Its homepage responds, but the old extension's `/all-series/page/...` route returned 404 and its detail-page selectors were absent. Replacing only the hostname would break parsing; this needs a newly authored/maintained extension, not a blind URL rewrite.
 - **The 12 challenge/403 sources** (Foxaholic, Asian Hobbyist, Webnovel, ScribbleHub, PawRead, Honeyfeed, NovelHall, Fimfiction, Sufficient Velocity, AltHistory, SpaceBattles, WTR-LAB) and the two plain-403 sources (Read From Net, KnoxT) may be blocking this probe. Nameless does not bypass captchas, login walls, or access controls; the sources may still behave differently on a phone or network.
 

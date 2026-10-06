@@ -23,7 +23,7 @@ Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The workspace connection and signing 
 
 ## Validation scope
 
-- The Android CI/release suite covers **109 tests**: 35 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, and 17 reader/inset tests. Confirm pass/fail on the exact GitHub workflow run before publication.
+- **109 Android automated tests passed**: 35 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, and 17 reader/inset tests. The unsigned standard release also built successfully in [v58 candidate CI](https://github.com/tensozanghetzu-hub/Nameless/actions/runs/37511276942).
 - **8 Python release/source-packaging tests passed**, including version validation, secret exclusion, symlink exclusion and required GPL/source files.
 - GitHub workflow YAML structure and actionlint validation passed locally.
 - Release/signing/package/source-archive checks are recorded with the delivered build.
