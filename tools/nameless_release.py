@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import zipfile
+import xml.etree.ElementTree as ET
 
 REPOSITORY = "tensozanghetzu-hub/Nameless"
 APPLICATION_ID = "app.nameless.reader"
@@ -106,7 +107,22 @@ def package_release(root, apk, tag, output, tools, event=None):
     }
     update = output / "nameless-update.json"
     update.write_text(json.dumps(manifest, indent=2) + "\n")
-    (output / "SHA256SUMS.txt").write_text("".join(f"{sha256(p)}  {p.name}\n" for p in [final_apk, source, update]))
+    checksum_files = [final_apk, source, update]
+    reports = sorted((root / "android/build/test-results/testStandardReleaseUnitTest").glob("TEST-*.xml"))
+    if reports:
+        suites = []
+        for report in reports:
+            suite = ET.parse(report).getroot().attrib
+            if any(int(suite[key]) for key in ["failures", "errors", "skipped"]):
+                raise ValueError("Release test suite did not pass completely: " + suite["name"])
+            suites.append({key: suite[key] for key in ["name", "tests", "failures", "errors", "skipped", "time"]})
+        test_zip = output / f"Nameless-{tag}-test-results.zip"
+        with zipfile.ZipFile(test_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+            for report in reports:
+                archive.write(report, report.name)
+            archive.writestr("summary.json", json.dumps({"tests": sum(int(s["tests"]) for s in suites), "suites": suites}, indent=2) + "\n")
+        checksum_files.append(test_zip)
+    (output / "SHA256SUMS.txt").write_text("".join(f"{sha256(p)}  {p.name}\n" for p in checksum_files))
     print(f"Validated and packaged {tag}: original certificate, signatures, alignment, APK identity, corresponding GPL source.")
     return manifest
 

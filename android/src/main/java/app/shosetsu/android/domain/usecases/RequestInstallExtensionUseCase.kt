@@ -5,6 +5,7 @@ import app.shosetsu.android.backend.workers.onetime.ExtensionInstallWorker
 import app.shosetsu.android.backend.workers.onetime.ExtensionInstallWorker.Companion.KEY_EXTENSION_ID
 import app.shosetsu.android.backend.workers.onetime.ExtensionInstallWorker.Companion.KEY_REPOSITORY_ID
 import app.shosetsu.android.common.enums.DownloadStatus
+import app.shosetsu.android.domain.catalog.EnglishExtensionCatalogPolicy
 import app.shosetsu.android.domain.model.local.ExtensionInstallOptionEntity
 import app.shosetsu.android.domain.repository.base.IExtensionDownloadRepository
 import app.shosetsu.android.view.uimodels.model.BrowseExtensionUI
@@ -37,8 +38,12 @@ class RequestInstallExtensionUseCase(
 	suspend operator fun invoke(
 		extension: BrowseExtensionUI,
 		option: ExtensionInstallOptionEntity
-	) =
-		invoke(extension.id, option.repoId)
+	) {
+        require(EnglishExtensionCatalogPolicy.isVisible(extension.lang, extension.isInstalled)) {
+            "The available Nameless source catalog is English-only. Already-installed sources are preserved."
+        }
+        invoke(extension.id, option.repoId)
+    }
 
 	/**
 	 * Update an extension

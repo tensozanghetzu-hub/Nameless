@@ -27,6 +27,7 @@ import app.shosetsu.android.common.ext.logE
 import app.shosetsu.android.common.ext.logI
 import app.shosetsu.android.common.ext.logV
 import app.shosetsu.android.domain.model.local.ExtensionInstallOptionEntity
+import app.shosetsu.android.domain.catalog.EnglishExtensionCatalogPolicy
 import app.shosetsu.android.domain.repository.base.ISettingsRepository
 import app.shosetsu.android.domain.usecases.CancelExtensionInstallUseCase
 import app.shosetsu.android.domain.usecases.IsOnlineUseCase
@@ -241,7 +242,7 @@ class ExtensionsViewModel(
 						else sequence
 					}
 					.filter { if (onlyInstalled) it.isInstalled else true }
-					.filterNot { languagesToFilter.contains(it.lang) }
+					.filterNot { EnglishExtensionCatalogPolicy.isHiddenByLanguageChoice(it.lang, it.isInstalled, languagesToFilter) }
 					.sortedBy { it.name }
 					.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.displayLang })
 					.sortedBy { !it.isInstalled }

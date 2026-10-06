@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nameless English-only available sources, 2026-10-06. GPL-3.0. -->
+<resources>
+    <string name="english_catalog_filter_notice">New sources: English only. Language choices below apply to installed sources.</string>
+</resources>

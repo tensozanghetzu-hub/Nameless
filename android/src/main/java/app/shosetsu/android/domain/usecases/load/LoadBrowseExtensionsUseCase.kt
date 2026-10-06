@@ -1,6 +1,7 @@
 package app.shosetsu.android.domain.usecases.load
 
 import app.shosetsu.android.common.enums.DownloadStatus
+import app.shosetsu.android.domain.catalog.EnglishExtensionCatalogPolicy
 import app.shosetsu.android.common.utils.uifactory.mapLatestToResultFlowWithFactory
 import app.shosetsu.android.domain.repository.base.IExtensionDownloadRepository
 import app.shosetsu.android.domain.repository.base.IExtensionsRepository
@@ -37,6 +38,9 @@ class LoadBrowseExtensionsUseCase(
 	@OptIn(ExperimentalCoroutinesApi::class)
 	operator fun invoke(): Flow<List<BrowseExtensionUI>> =
 		extensionsRepository.loadBrowseExtensions()
+            // Keep repository metadata intact for existing-source updates and
+            // migration; filter only the available catalog's presentation.
+            .map { list -> list.filter { EnglishExtensionCatalogPolicy.isVisible(it.lang, it.isInstalled) } }
 			.flatMapLatest { extensionList -> // Merge with downloadStatus
 				val listOfFlows =
 					extensionList.map { it to extensionDownloadRepository.getStatusFlow(it.id) }
@@ -49,7 +53,8 @@ class LoadBrowseExtensionsUseCase(
 						}
 
 				// Merge the flows
-				combine(*listOfFlows.toTypedArray()) { it.toList() }
+				if (listOfFlows.isEmpty()) flowOf(emptyList())
+				else combine(*listOfFlows.toTypedArray()) { it.toList() }
 			}
 			.mapLatestToResultFlowWithFactory()
 			.mapLatest { it.convertList() }

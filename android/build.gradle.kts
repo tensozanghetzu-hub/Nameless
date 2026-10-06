@@ -19,8 +19,8 @@ android {
 		minSdk = 22
 		targetSdk = 36
 		// Release workflow supplies a strictly increasing code from its vNN tag.
-		versionCode = providers.gradleProperty("namelessVersionCode").orNull?.toInt() ?: 54
-		versionName = providers.gradleProperty("namelessVersionName").orNull ?: "2.5.3-nameless.5"
+		versionCode = providers.gradleProperty("namelessVersionCode").orNull?.toInt() ?: 56
+		versionName = providers.gradleProperty("namelessVersionName").orNull ?: "2.5.3-nameless.7"
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		multiDexEnabled = true
 

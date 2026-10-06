@@ -133,7 +133,7 @@ fun BrowseControllerLanguagesFilter(
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Text(
-				text = stringResource(R.string.languages),
+                text = stringResource(R.string.english_catalog_filter_notice),
 				Modifier.padding(start = 16.dp, bottom = 8.dp)
 			)
 

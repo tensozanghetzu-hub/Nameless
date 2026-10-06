@@ -44,3 +44,7 @@ This build connects to [tensozanghetzu-hub/Nameless](https://github.com/tensozan
 ## Workspace Git connection
 
 The source workspace can commit/push to this repository after secure GitHub browser authorization. See [GITHUB-WORKSPACE.md](GITHUB-WORKSPACE.md). The connection excludes private signing/authentication files and does not automatically publish phone updates.
+
+## English-only available sources
+
+Release v56 makes the new-source catalog English-only while retaining installed sources, novel records, downloads and reading progress. See [ENGLISH-CATALOG.md](ENGLISH-CATALOG.md).
