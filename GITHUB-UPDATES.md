@@ -1,6 +1,6 @@
-# Nameless GitHub updater — 2.5.3-nameless.5
+# Nameless GitHub updater and release workflow
 
-Modified 2026-10-06. Bootstrap versionCode **54**. Target repository: **tensozanghetzu-hub/Nameless**. Original GPL-3.0 licensing, attribution and corresponding core-library source are retained.
+Updated for Nameless v57 (`2.5.3-nameless.8`) on 2026-10-06. The updater was introduced at bootstrap versionCode **54**. Target repository: **tensozanghetzu-hub/Nameless**. Original GPL-3.0 licensing, attribution and corresponding core-library source are retained.
 
 ## Implementation
 
@@ -19,13 +19,13 @@ Modified 2026-10-06. Bootstrap versionCode **54**. Target repository: **tensozan
 - Third-party Actions are pinned to full commit SHAs. The signing key is decoded into a private runner-temporary file, never source/release assets, and removed after signing. No signing secrets are passed to the ordinary CI workflow.
 - Release asset generation and public source filtering live in `tools/nameless_release.py`; version properties avoid manual Gradle edits for each release. New stable version tags must increase.
 
-Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The source has been imported by its owner, and this workspace now has a repository-scoped Git credential helper after official GitHub browser authorization. See GITHUB-WORKSPACE.md. This connection step does not configure signing secrets, create tags or publish a release; the owner still controls release setup/publication.
+Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The workspace connection and signing material are private, repository-scoped, and excluded from commits/source archives. Releases are produced by the owner-authorized GitHub Actions workflow after a stable vNN release is published; that workflow validates the original signing identity before attaching update assets.
 
 ## Validation scope
 
-- **74 Android automated tests passed**, zero failures/errors/skips: existing 43 migration/reader regressions, 23 updater policy/cache/security tests, and 8 real datasource tests with canned HTTPS responses/no live downloads.
+- **108 Android automated tests passed**, zero failures/errors/skips: 34 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, and 17 reader/inset tests.
 - **8 Python release/source-packaging tests passed**, including version validation, secret exclusion, symlink exclusion and required GPL/source files.
 - GitHub workflow YAML structure and actionlint validation passed locally.
 - Release/signing/package/source-archive checks are recorded with the delivered build.
 
-The current public repository metadata and absent-release state were checked live. The release workflow has not run on GitHub from this session, and end-to-end phone installation of a GitHub-hosted update has not been tested. The previous status-bar fix was confirmed by the user; that does not constitute updater/device validation. Android/package-installer and repository-provider behavior must be checked after the owner completes setup.
+The physical-device appearance of the repaired avatars and end-to-end installation of the GitHub-hosted update still require confirmation on a phone. The release workflow validates CI artifacts and signing, but it cannot substitute for checking display and Android's user-consented package-installer flow on the owner's device.

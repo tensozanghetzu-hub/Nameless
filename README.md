@@ -48,3 +48,7 @@ The source workspace can commit/push to this repository after secure GitHub brow
 ## English-only available sources
 
 Release v56 makes the new-source catalog English-only while retaining installed sources, novel records, downloads and reading progress. See [ENGLISH-CATALOG.md](ENGLISH-CATALOG.md).
+
+## Extension avatars
+
+The v57 loader repairs the retired official GitLab Pages icon URLs and tries same-site favicon fallback for broken image hosts. Installed-source records and all reading data are preserved. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md).

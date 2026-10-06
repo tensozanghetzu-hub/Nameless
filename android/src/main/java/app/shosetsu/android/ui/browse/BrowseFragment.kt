@@ -91,15 +91,12 @@ import app.shosetsu.android.view.compose.AnimatedRefresh
 import app.shosetsu.android.view.compose.ErrorAction
 import app.shosetsu.android.view.compose.ErrorContent
 import app.shosetsu.android.view.compose.HelpButton
-import app.shosetsu.android.view.compose.ImageLoadingError
 import app.shosetsu.android.view.compose.SimpleIconButton
 import app.shosetsu.android.view.compose.placeholder
 import app.shosetsu.android.view.compose.rememberFakePullRefreshState
 import app.shosetsu.android.view.uimodels.model.BrowseExtensionUI
 import app.shosetsu.android.viewmodel.abstracted.ABrowseViewModel
 import app.shosetsu.lib.Version
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -459,36 +456,11 @@ fun BrowseExtensionContent(
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
 			) {
-				if (item.imageURL.isNotEmpty()) {
-					SubcomposeAsyncImage(
-						ImageRequest.Builder(LocalContext.current)
-							.data(item.imageURL)
-							.crossfade(true)
-							.build(),
-						contentDescription = stringResource(R.string.fragment_browse_ext_icon_desc),
-						modifier = Modifier.size(64.dp),
-						error = {
-							Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
-								ImageLoadingError(
-									Modifier
-										.size(52.dp)
-										.clip(MaterialTheme.shapes.extraSmall)
-								)
-							}
-						},
-						loading = {
-							Box(Modifier.placeholder(true))
-						}
-					)
-				} else {
-					Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
-						ImageLoadingError(
-							Modifier
-								.size(52.dp)
-								.clip(MaterialTheme.shapes.extraSmall)
-						)
-					}
-				}
+                ExtensionAvatar(
+                    imageUrl = item.imageURL,
+                    contentDescription = stringResource(R.string.fragment_browse_ext_icon_desc),
+                    modifier = Modifier.size(64.dp),
+                )
 				Column(
 					modifier = Modifier.padding(start = 8.dp)
 				) {

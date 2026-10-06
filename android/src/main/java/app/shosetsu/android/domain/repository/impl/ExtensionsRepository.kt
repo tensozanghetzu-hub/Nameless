@@ -3,6 +3,7 @@ package app.shosetsu.android.domain.repository.impl
 import android.database.sqlite.SQLiteException
 import app.shosetsu.android.common.ext.logV
 import app.shosetsu.android.common.ext.onIO
+import app.shosetsu.android.domain.catalog.ExtensionIconPolicy
 import app.shosetsu.android.datasource.local.database.base.IDBExtRepoDataSource
 import app.shosetsu.android.datasource.local.database.base.IDBInstalledExtensionsDataSource
 import app.shosetsu.android.datasource.local.database.base.IDBRepositoryExtensionsDataSource
@@ -94,10 +95,19 @@ class ExtensionsRepository(
 						}
 					}
 
+					val currentInstalledRepositoryIcon = installedExt?.let { installed ->
+						matchingExtensions.firstOrNull { it.repoID == installed.repoID }?.imageURL
+					}
+					val browseIcon = ExtensionIconPolicy.preferredImageUrl(
+						installedRepositoryImageUrl = currentInstalledRepositoryIcon,
+						installedSavedImageUrl = installedExt?.imageURL,
+						availableRepositoryImageUrls = matchingExtensions.map { it.imageURL },
+					)
+
 					BrowseExtensionEntity(
 						id = extId,
 						name = installedExt?.name ?: firstExt.name,
-						imageURL = installedExt?.imageURL ?: firstExt.imageURL,
+						imageURL = browseIcon,
 						lang = installedExt?.lang ?: firstExt.lang,
 						installOptions = if (installedExt == null) {
 							matchingExtensions.mapNotNull { genericExt ->

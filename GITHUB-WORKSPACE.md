@@ -33,8 +33,8 @@ This is Git synchronization, **not automatic file mirroring**: workspace edits d
 
 - A source push runs the `Nameless checks` workflow; it does not publish a phone update.
 - Publishing a stable tag `v55`, `v56`, etc. runs the signed-release workflow.
-- The two encrypted Actions signing secrets must be configured separately as described in [GITHUB-SETUP.md](GITHUB-SETUP.md).
-- This connection change does not set those secrets, create a release, publish an APK or install anything on a phone.
+- The signed-release workflow reads the retained signing material only from encrypted repository Actions secrets. Local credential/key files remain outside the source tree and source archive.
+- Publishing a release is separate from a source push; only the stable release workflow uploads a validated, signed APK. The owner still needs to install/check the resulting release on a physical device.
 
 ## Keep private material private
 

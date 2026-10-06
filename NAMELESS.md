@@ -94,4 +94,8 @@ The entire scaffold now uses the safe, clipped native viewport. Collapsed peek a
 
 ## GitHub updater
 
-Bootstrap versionCode 54 adds a repository-specific, verified updater and GitHub Actions workflows. See [GITHUB-SETUP.md](GITHUB-SETUP.md) for one-time setup and [GITHUB-UPDATES.md](GITHUB-UPDATES.md) for 74 Android + 8 Python passing tests and limits. No GitHub write action or live release publication has been performed from this workspace.
+Bootstrap versionCode 54 added a repository-specific, verified updater and GitHub Actions workflows. See [GITHUB-SETUP.md](GITHUB-SETUP.md) for setup details and [GITHUB-UPDATES.md](GITHUB-UPDATES.md) for release validation and limitations. The signing material and GitHub workspace credentials are excluded from commits and release source bundles.
+
+## Extension avatars
+
+The v57 extension-avatar loader repairs the retired official GitLab Pages icon URLs and has a limited same-origin favicon fallback; installed-source display now prefers refreshed repository metadata. It does not delete/reinstall extensions or clear novels/data. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md).
