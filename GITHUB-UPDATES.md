@@ -19,7 +19,7 @@ Modified 2026-10-06. Bootstrap versionCode **54**. Target repository: **tensozan
 - Third-party Actions are pinned to full commit SHAs. The signing key is decoded into a private runner-temporary file, never source/release assets, and removed after signing. No signing secrets are passed to the ordinary CI workflow.
 - Release asset generation and public source filtering live in `tools/nameless_release.py`; version properties avoid manual Gradle edits for each release. New stable version tags must increase.
 
-Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). An empty GitHub repository is not configured automatically: source and the two private Actions secrets must first be uploaded by its owner. This session has no authenticated write access to that account and has not pushed, created tags, set secrets or published any release.
+Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The source has been imported by its owner, and this workspace now has a repository-scoped Git credential helper after official GitHub browser authorization. See GITHUB-WORKSPACE.md. This connection step does not configure signing secrets, create tags or publish a release; the owner still controls release setup/publication.
 
 ## Validation scope
 

@@ -40,3 +40,7 @@ The collapsed panel no longer reveals settings under Android navigation buttons.
 ## GitHub app updates
 
 This build connects to [tensozanghetzu-hub/Nameless](https://github.com/tensozanghetzu-hub/Nameless) stable releases with verified, user-confirmed in-app APK updates. See [GITHUB-SETUP.md](GITHUB-SETUP.md) for one-time source/secret setup and [GITHUB-UPDATES.md](GITHUB-UPDATES.md) for implementation and validation. Native changes still require a new APK; the app handles discovery/download, not hot code injection.
+
+## Workspace Git connection
+
+The source workspace can commit/push to this repository after secure GitHub browser authorization. See [GITHUB-WORKSPACE.md](GITHUB-WORKSPACE.md). The connection excludes private signing/authentication files and does not automatically publish phone updates.

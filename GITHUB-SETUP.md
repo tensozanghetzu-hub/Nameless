@@ -1,7 +1,7 @@
 # Connect Nameless to your GitHub releases
 
 Repository: **https://github.com/tensozanghetzu-hub/Nameless**  
-Prepared 2026-10-06. The repository was public and empty when checked. Nothing has been pushed or published from this workspace.
+Prepared 2026-10-06. The repository was initially public and empty, then its owner imported the full source. The workspace-to-GitHub source connection is described in GITHUB-WORKSPACE.md. Signing secrets and release publication are separate setup steps.
 
 ## What this provides
 
@@ -20,6 +20,8 @@ Install `Nameless-2.5.3-github-updater.apk` over your existing Nameless. **Do no
 Until GitHub has a completed signed release, the app correctly says that no newer ready stable release is available. Merely linking an empty repository does not create an update.
 
 ## 2. Put the repository-ready SOURCE on GitHub
+
+**Already completed for this repository:** its owner imported the source, and this workspace is connected to that existing history. The instructions below remain useful for a fresh clone/import. See GITHUB-WORKSPACE.md for future workspace pushes.
 
 Use **Nameless-GitHub-ready-source.zip**, not the APK and not the private signing folder. Extract it; its `Nameless-source` directory contains the project.
 
@@ -96,7 +98,7 @@ Tags directly define Android versionCode. Version names are generated as `2.5.3-
 
 ## Testing limits and troubleshooting
 
-The local build/test results are supplied with the delivery. Public repository discovery was checked; the release API currently has no published update. GitHub-hosted workflows and a real phone self-update have NOT been exercised from this session because the repository has not been populated or configured.
+The local build/test results are supplied with the delivery. Public repository discovery was checked; the release API currently has no published update. GitHub-hosted workflows and a real phone self-update have NOT been exercised from this session because this connection step does not run a signed release or an Android installation. The source import is already present; verify signing-secret setup and publish a ready release next.
 
 - **No newer ready release:** make sure the release is stable, has the vNN tag and all assets, and has a higher code than installed.
 - **Build fails:** inspect Actions logs; configure the two secret NAMES exactly, keep the original key, and include the root `gradle/` directory/workflows.
