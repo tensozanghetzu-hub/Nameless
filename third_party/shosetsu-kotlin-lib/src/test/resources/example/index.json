@@ -1,0 +1,98 @@
+{
+  "authors": [
+    {
+      "id": 0,
+      "name": "Min Author"
+    },
+    {
+      "id": 1,
+      "name": "Full Author",
+      "desc": "Author says hi.",
+      "imageURL": "https://shosetsu.app/favicon.ico",
+      "website": "https://shosetsu.app"
+    }
+  ],
+  "libraries": [
+    {
+      "name": "local",
+      "ver": "1.0.0"
+    },
+    {
+      "name": "remote",
+      "ver": "1.0.0",
+      "url": "https://raw.githubusercontent.com/rxi/json.lua/11077824d7cfcd28a4b2f152518036b295e7e4ce/json.lua",
+      "hash": "0eaccda57fabc0330736de25f45cf589821a42b5e0fe02e4e3125f7dc0bf2b7e"
+    }
+  ],
+  "scripts": [
+    {
+      "id": 0,
+      "name": "Min Extension",
+      "fileName": "min-ext",
+      "imageURL": "https://shosetsu.app/favicon.ico",
+      "lang": "eng",
+      "ver": "1.0.0",
+      "libVer": "1.0.0"
+    },
+    {
+      "id": 1,
+      "name": "Full Extension",
+      "fileName": "full-ext",
+      "imageURL": "https://shosetsu.app/favicon.ico",
+      "lang": "eng",
+      "ver": "1.0.0",
+      "libVer": "1.0.0"
+    }
+  ],
+  "styles": [
+    {
+      "id": 0,
+      "name": "Min Style",
+      "fileName": "min-style",
+      "ver": "1.0.0"
+    },
+    {
+      "id": 1,
+      "name": "Full Style",
+      "fileName": "full-style",
+      "ver": "1.0.0",
+      "desc": "This is a full style description",
+      "changes": "What have I changed?",
+      "authors": [
+        0,
+        1
+      ],
+      "supported": [
+        0,
+        1
+      ],
+      "example": true,
+      "js": true
+    }
+  ],
+  "js": [
+    {
+      "id": 0,
+      "name": "Min JS",
+      "fileName": "min-js",
+      "ver": "1.0.0"
+    },
+    {
+      "id": 1,
+      "name": "Full JS",
+      "fileName": "full-js",
+      "ver": "1.0.0",
+      "desc": "This is a full js description",
+      "changes": "What have I changed?",
+      "authors": [
+        0,
+        1
+      ],
+      "supported": [
+        0,
+        1
+      ],
+      "example": true
+    }
+  ]
+}

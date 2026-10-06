@@ -1,0 +1,299 @@
+/*
+ * This file is part of shosetsu.
+ *
+ * shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package app.shosetsu.android.ui.reader
+
+import android.app.SearchManager
+import android.content.Intent
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowInsetsControllerCompat
+import app.shosetsu.android.R
+import app.shosetsu.android.common.consts.MAX_CONTINUOUS_READING_TIME
+import app.shosetsu.android.common.ext.viewModelDi
+import app.shosetsu.android.ui.css.CSSEditorActivity
+import app.shosetsu.android.ui.reader.content.ChapterReaderBottomSheetContent
+import app.shosetsu.android.ui.reader.content.ChapterReaderContent
+import app.shosetsu.android.ui.reader.content.ChapterReaderPage
+import app.shosetsu.android.ui.reader.content.ChapterReaderPager
+import app.shosetsu.android.ui.reader.content.ReaderViewport
+import app.shosetsu.android.ui.reader.page.DividerPage
+import app.shosetsu.android.ui.theme.ShosetsuTheme
+import app.shosetsu.android.view.uimodels.StableHolder
+import app.shosetsu.android.view.uimodels.model.reader.ReaderUIItem
+import app.shosetsu.android.viewmodel.abstracted.AChapterReaderViewModel
+import app.shosetsu.android.viewmodel.impl.settings.EditCSS
+import app.shosetsu.android.viewmodel.impl.settings.doubleTapFocus
+import app.shosetsu.android.viewmodel.impl.settings.doubleTapSystem
+import app.shosetsu.android.viewmodel.impl.settings.enableFullscreen
+import app.shosetsu.android.viewmodel.impl.settings.invertChapterSwipeOption
+import app.shosetsu.android.viewmodel.impl.settings.matchFullscreenToFocus
+import app.shosetsu.android.viewmodel.impl.settings.readerEngineOption
+import app.shosetsu.android.viewmodel.impl.settings.readerKeepScreenOnOption
+import app.shosetsu.android.viewmodel.impl.settings.readerLanguageOption
+import app.shosetsu.android.viewmodel.impl.settings.readerPitchOption
+import app.shosetsu.android.viewmodel.impl.settings.readerReadNextChapter
+import app.shosetsu.android.viewmodel.impl.settings.readerReadNextChapterAlert
+import app.shosetsu.android.viewmodel.impl.settings.readerSpeedOption
+import app.shosetsu.android.viewmodel.impl.settings.readerTableHackOption
+import app.shosetsu.android.viewmodel.impl.settings.readerTestOption
+import app.shosetsu.android.viewmodel.impl.settings.readerTextSelectionToggle
+import app.shosetsu.android.viewmodel.impl.settings.readerVoiceOption
+import app.shosetsu.android.viewmodel.impl.settings.showReaderDivider
+import app.shosetsu.android.viewmodel.impl.settings.textSizeOption
+import app.shosetsu.android.viewmodel.impl.settings.trackLongReadingOption
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.delay
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChapterReaderView(
+	viewModel: AChapterReaderViewModel = viewModelDi(),
+	onExit: () -> Unit
+) {
+	val uiController = rememberSystemUiController()
+	uiController.systemBarsBehavior =
+		WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+	val isSystemVisible by viewModel.isSystemVisible.collectAsState()
+	uiController.isSystemBarsVisible = isSystemVisible
+
+	val items by viewModel.liveData.collectAsState()
+	val isHorizontalReading by viewModel.isHorizontalReading.collectAsState()
+	val isBookmarked by viewModel.isCurrentChapterBookmarked.collectAsState()
+	val isRotationLocked by viewModel.liveIsScreenRotationLocked.collectAsState()
+	val isFocused by viewModel.isFocused.collectAsState()
+	val enableFullscreen by viewModel.enableFullscreen.collectAsState()
+	val matchFullscreenToFocus by viewModel.matchFullscreenToFocus.collectAsState()
+	val currentChapterID by viewModel.currentChapterID.collectAsState()
+	val ttsPlayback by viewModel.ttsPlayback.collectAsState()
+	val setting by viewModel.getSettings().collectAsState()
+	val currentPage by viewModel.currentPage.collectAsState()
+
+	val isFirstFocus by viewModel.isFirstFocusFlow.collectAsState()
+	val isSwipeInverted by viewModel.isSwipeInverted.collectAsState()
+
+	val isReadingTooLong by viewModel.isReadingTooLong.collectAsState()
+	val trackLongReading by viewModel.trackLongReading.collectAsState()
+
+	val exception by viewModel.exceptions.collectAsState(null)
+	val showTTSClickHint by viewModel.showTTSClickHint.collectAsState(false)
+
+	val context = LocalContext.current
+	val uriHandler = LocalUriHandler.current
+
+	if (trackLongReading)
+		LaunchedEffect(isReadingTooLong) {
+			while (!isReadingTooLong) {
+				val startTime = System.currentTimeMillis()
+				delay(MAX_CONTINUOUS_READING_TIME)
+				val currentTime = System.currentTimeMillis()
+				if ((currentTime - startTime) < ((MAX_CONTINUOUS_READING_TIME / .25)))
+					viewModel.userIsReadingTooLong()
+			}
+		}
+
+	val theme by viewModel.appTheme.collectAsState()
+
+	//val isTapToScroll by viewModel.tapToScroll.collectAsState(false)
+	ShosetsuTheme(theme) {
+		val colorScheme = MaterialTheme.colorScheme
+		LaunchedEffect(colorScheme) {
+			viewModel.colorScheme.value = colorScheme
+		}
+		ChapterReaderContent(
+			isFirstFocusProvider = { isFirstFocus },
+			isFocused = isFocused,
+			onFirstFocus = viewModel::onFirstFocus,
+			sheetContent = { state ->
+				ChapterReaderBottomSheetContent(
+					scaffoldState = state,
+					ttsPlayback = ttsPlayback,
+					isBookmarked = isBookmarked,
+					isRotationLocked = isRotationLocked,
+					setting = setting,
+					toggleRotationLock = viewModel::toggleScreenRotationLock,
+					toggleBookmark = viewModel::toggleBookmark,
+					exit = onExit,
+					onPlayTTS = {
+						viewModel.onPlayTts()
+					},
+					onPauseTTS = viewModel::onPauseTts,
+					onStopTTS = viewModel::onStopTts,
+					updateSetting = viewModel::updateSetting,
+					lowerSheet = {
+						item { viewModel.textSizeOption() }
+						//item { viewModel.tapToScrollOption() }
+						//item { viewModel.volumeScrollingOption() }
+						//item { viewModel.horizontalSwitchOption() }
+						item { viewModel.invertChapterSwipeOption() }
+						item { viewModel.readerKeepScreenOnOption() }
+						item { viewModel.enableFullscreen() }
+						item { viewModel.matchFullscreenToFocus() }
+						item { viewModel.showReaderDivider() }
+						item { viewModel.doubleTapFocus() }
+						item { viewModel.doubleTapSystem() }
+						item { viewModel.readerTableHackOption() }
+						item {
+							viewModel.EditCSS(
+								openCSS = {
+									context.startActivity(
+										Intent(context, CSSEditorActivity::class.java).apply {
+											putExtra(CSSEditorActivity.CSS_ID, -1)
+										},
+										null
+									)
+								}
+							)
+						}
+						item { viewModel.readerTextSelectionToggle() }
+						item { viewModel.trackLongReadingOption() }
+						item { viewModel.readerPitchOption() }
+						item { viewModel.readerSpeedOption() }
+						item { viewModel.readerEngineOption() }
+						item { viewModel.readerLanguageOption() }
+						item { viewModel.readerVoiceOption() }
+						item { viewModel.readerTestOption() }
+						item { viewModel.readerReadNextChapter() }
+						item { viewModel.readerReadNextChapterAlert() }
+					},
+					toggleFocus = viewModel::toggleFocus,
+					onShowNavigation = viewModel::toggleSystemVisible.takeIf { enableFullscreen && !matchFullscreenToFocus },
+				)
+			},
+			content = { windowPadding, footerPadding ->
+				// Nameless, 2026-10-06: native viewport owns system-bar/cutout
+				// spacing. Do not duplicate it in scrolling CSS body padding.
+				LaunchedEffect(viewModel) {
+					viewModel.paddingValues.value = PaddingValues(0.dp)
+				}
+				ChapterReaderPager(
+					items = items ?: persistentListOf(),
+					isHorizontal = isHorizontalReading,
+					isSwipeInverted = isSwipeInverted,
+					currentPage = currentPage,
+					onPageChanged = viewModel::setCurrentPage,
+					markChapterAsCurrent = {
+						viewModel.onViewed(it)
+						viewModel.setCurrentChapterID(it.id)
+					},
+					onChapterRead = viewModel::updateChapterAsRead,
+					onStopTTS = viewModel::onStopTts,
+					pageJumper = StableHolder(viewModel.pageJumper),
+					createPage = { page ->
+						when (val item = items.orEmpty()[page]) {
+							is ReaderUIItem.ReaderChapterUI -> {
+								ChapterReaderPage(
+									windowPadding = windowPadding,
+									footerPadding = footerPadding,
+									item = item,
+									getHTMLContent = viewModel::getChapterPassageHTML,
+									getChapterHTMLStyle = viewModel::cssStyle,
+									retryChapter = viewModel::retryChapter,
+									onScroll = viewModel::onScroll,
+									onClick = viewModel::onReaderClicked,
+									onDoubleClick = viewModel::onReaderDoubleClicked,
+									progressFlow = {
+										viewModel.getChapterProgress(item)
+									},
+									ttsProgress = remember {
+										StableHolder(viewModel.ttsProgress)
+									},
+									onSearchQuery = {
+										val intent = Intent(Intent.ACTION_WEB_SEARCH).apply {
+											putExtra(SearchManager.QUERY, it)
+										}
+										context.startActivity(intent)
+									},
+									openUri = {
+										uriHandler.openUri(it)
+									},
+								)
+							}
+
+							is ReaderUIItem.ReaderDividerUI -> {
+								ReaderViewport(windowPadding, footerPadding) {
+									DividerPage(item.prev.title, item.next?.title)
+								}
+							}
+						}
+					}
+				)
+			},
+			//isTapToScroll = isTapToScroll
+			exception = exception,
+			showTTSClickHint = showTTSClickHint
+		)
+		if (isReadingTooLong) {
+			AlertDialog(
+				onDismissRequest = {},
+				title = {
+					Text(stringResource(R.string.reader_long_reading_title))
+				},
+				text = {
+					Text(stringResource(R.string.reader_long_reading_desc))
+
+				},
+				confirmButton = {
+					var isEnabled by remember { mutableStateOf(false) }
+					var timeLeft by remember { mutableIntStateOf(20) }
+
+					LaunchedEffect(Unit) {
+						repeat(20) {
+							delay(1000)
+							timeLeft--
+						}
+						isEnabled = true
+					}
+
+					TextButton(onClick = {
+						if (isEnabled) {
+							viewModel.dismissReadingTooLong()
+						}
+					}) {
+						if (isEnabled) {
+							Text(stringResource(android.R.string.ok))
+						} else {
+							Text("$timeLeft")
+						}
+					}
+				},
+				properties = DialogProperties(
+					dismissOnBackPress = false,
+					dismissOnClickOutside = false
+				)
+			)
+		}
+	}
+}

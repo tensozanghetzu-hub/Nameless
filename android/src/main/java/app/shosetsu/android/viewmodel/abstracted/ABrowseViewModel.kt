@@ -1,0 +1,134 @@
+package app.shosetsu.android.viewmodel.abstracted
+
+import androidx.compose.runtime.Immutable
+import app.shosetsu.android.domain.model.local.ExtensionInstallOptionEntity
+import app.shosetsu.android.view.uimodels.model.BrowseExtensionUI
+import app.shosetsu.android.viewmodel.base.ShosetsuViewModel
+import app.shosetsu.android.viewmodel.base.SubscribeViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import java.util.Locale
+
+/*
+ * This file is part of shosetsu.
+ *
+ * shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
+/**
+ * shosetsu
+ * 29 / 04 / 2020
+ *
+ * @author github.com/doomsdayrs
+ */
+abstract class ABrowseViewModel :
+	ShosetsuViewModel(),
+	SubscribeViewModel<ImmutableList<BrowseExtensionUI>?> {
+
+	@Immutable
+	data class LanguageFilter(val lang: String, val displayLang: String) {
+		constructor(lang: String) : this(lang, Locale.forLanguageTag(lang).displayName)
+	}
+
+	@Immutable
+	data class FilteredLanguages(
+		val languages: ImmutableList<LanguageFilter>,
+		val states: ImmutableMap<String, Boolean>
+	)
+
+	abstract val isOnline: StateFlow<Boolean>
+
+	abstract val error: Flow<Throwable>
+
+	/**
+	 * If to show a confirm dialog
+	 */
+	abstract val showUninstallConfirm: StateFlow<Boolean>
+
+	/** Refreshes the repositories and data values */
+	abstract fun refresh()
+
+	/** Installs an extension */
+	abstract fun installExtension(
+		extension: BrowseExtensionUI,
+		option: ExtensionInstallOptionEntity
+	)
+
+	/** Update an extension, only works if it is already installed */
+	abstract fun updateExtension(ext: BrowseExtensionUI)
+
+	/** Cancel an extension install */
+	abstract fun cancelInstall(ext: BrowseExtensionUI)
+
+	/**
+	 * Ask to uninstall a given extension
+	 */
+	abstract fun uninstall(ext: BrowseExtensionUI)
+
+
+	/**
+	 * Languages that are present, this is used for filtering
+	 *
+	 * First value is a list of possible strings
+	 * Second value is if it is filtered or not
+	 */
+	abstract val filteredLanguagesLive: StateFlow<FilteredLanguages>
+
+	/**
+	 * Set if a language is filtered or not
+	 */
+	abstract fun setLanguageFiltered(language: String, state: Boolean)
+
+
+	abstract val onlyInstalledLive: StateFlow<Boolean>
+
+	/**
+	 * Set if to only show installed or not
+	 */
+	abstract fun showOnlyInstalled(state: Boolean)
+
+
+	abstract val searchTermLive: StateFlow<String>
+
+	/**
+	 * Filter the extension list to only display extensions matching [name]
+	 */
+	abstract fun setSearch(name: String)
+
+	/**
+	 * Reset the term set by [setSearch]
+	 */
+	abstract fun resetSearch()
+
+	abstract val isFilterMenuVisible: StateFlow<Boolean>
+
+	abstract fun showFilterMenu()
+
+	abstract fun hideFilterMenu()
+
+	/**
+	 * Dismiss the uninstallation request
+	 */
+	abstract fun dismissUninstall()
+
+	/**
+	 * Confirm the uninstallation request.
+	 *
+	 * Performs the removal immediately on the UI thread.
+	 */
+	abstract fun confirmUninstall()
+}

@@ -1,0 +1,47 @@
+*.iml
+.gradle
+/local.properties
+.idea/*
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+
+# hide releases
+android/standard/*
+android/playstore/*
+android/fdroid/*
+android/uptodown/*
+
+
+android/build/*
+android/build/intermediates/*
+android/database
+
+common/build/*
+common/build/intermediates/*
+
+# Secrets
+acra.properties
+acra-debug.properties
+acra-uptodown.properties
+
+# Kotlin thingy
+*.salive
+# Nameless private signing material and generated release artifacts
+*.p12
+*.jks
+*.keystore
+*.key
+*.apk
+*.aab
+**/password.txt
+/nameless-signing/
+/private-signing/
+/release-assets/
+**/__pycache__/
+
+# Prepared Actions-secret value files are private, even if copied by mistake
+NAMELESS_KEYSTORE_BASE64.txt
+NAMELESS_KEYSTORE_PASSWORD.txt
+github-actions-keystore-base64.txt

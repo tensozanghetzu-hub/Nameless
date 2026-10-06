@@ -1,0 +1,612 @@
+package app.shosetsu.android.ui.browse
+
+/*
+ * This file is part of shosetsu.
+ *
+ * shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import android.content.Intent
+import android.provider.Settings
+import androidx.annotation.StringRes
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ManageSearch
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.dp
+import app.shosetsu.android.R
+import app.shosetsu.android.common.OfflineException
+import app.shosetsu.android.common.consts.URL_HELP_BROWSE
+import app.shosetsu.android.common.ext.viewModelDi
+import app.shosetsu.android.domain.model.local.ExtensionInstallOptionEntity
+import app.shosetsu.android.ui.library.SearchAction
+import app.shosetsu.android.view.BottomSheetDialog
+import app.shosetsu.android.view.compose.AnimatedRefresh
+import app.shosetsu.android.view.compose.ErrorAction
+import app.shosetsu.android.view.compose.ErrorContent
+import app.shosetsu.android.view.compose.HelpButton
+import app.shosetsu.android.view.compose.ImageLoadingError
+import app.shosetsu.android.view.compose.SimpleIconButton
+import app.shosetsu.android.view.compose.placeholder
+import app.shosetsu.android.view.compose.rememberFakePullRefreshState
+import app.shosetsu.android.view.uimodels.model.BrowseExtensionUI
+import app.shosetsu.android.viewmodel.abstracted.ABrowseViewModel
+import app.shosetsu.lib.Version
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
+
+/**
+ * shosetsu
+ * 18 / 01 / 2020
+ *
+ * @author github.com/doomsdayrs
+ */
+
+@Composable
+fun BrowseView(
+	openCatalogue: (extensionId: Int) -> Unit,
+	openSettings: (extensionId: Int) -> Unit,
+	openRepositories: () -> Unit,
+	openSearch: () -> Unit,
+	drawerIcon: @Composable () -> Unit
+) {
+	val viewModel: ABrowseViewModel = viewModelDi()
+
+	val query by viewModel.searchTermLive.collectAsState()
+	val entities by viewModel.liveData.collectAsState()
+	val isOnline by viewModel.isOnline.collectAsState(false)
+	val error by viewModel.error.collectAsState(null)
+	val isFilterMenuVisible by viewModel.isFilterMenuVisible.collectAsState()
+	val showUninstallConfirm by viewModel.showUninstallConfirm.collectAsState()
+
+	val hostState = remember { SnackbarHostState() }
+	val context = LocalContext.current
+	val scope = rememberCoroutineScope()
+
+	suspend fun offlineMessage(@StringRes message: Int) {
+		val result = hostState.showSnackbar(
+			context.getString(message),
+			duration = SnackbarDuration.Long,
+			actionLabel = context.getString(R.string.generic_wifi_settings)
+		)
+		if (result == SnackbarResult.ActionPerformed) {
+			context.startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
+		}
+	}
+
+	LaunchedEffect(error) {
+		val error = error
+		if (error != null) {
+			when (error) {
+				is OfflineException -> {
+					scope.launch {
+						offlineMessage(error.messageRes)
+					}
+				}
+
+				else -> {
+					scope.launch {
+						hostState.showSnackbar(
+							error.message ?: context.getString(R.string.error)
+						)
+					}
+				}
+			}
+		}
+	}
+
+	BrowseContent(
+		entities = entities,
+		refresh = viewModel::refresh,
+		openRepositories = openRepositories,
+		installExtension = { extension, option ->
+			viewModel.installExtension(extension, option)
+		},
+		update = viewModel::updateExtension,
+		openCatalogue = {
+			if (isOnline) {
+				if (it.isInstalled) {
+					viewModel.resetSearch()
+					openCatalogue(it.id)
+				} else {
+					scope.launch {
+						hostState.showSnackbar(
+							context.getString(R.string.fragment_browse_snackbar_not_installed)
+						)
+					}
+				}
+			} else {
+				scope.launch {
+					offlineMessage(R.string.fragment_browse_snackbar_offline_no_extension)
+				}
+			}
+		},
+		openSettings = {
+			viewModel.resetSearch()
+			openSettings(it.id)
+		},
+		cancelInstall = viewModel::cancelInstall,
+		hostState = hostState,
+		onOpenFilter = viewModel::showFilterMenu,
+		onOpenSearch = openSearch,
+		query = query,
+		onSetQuery = viewModel::setSearch,
+		drawerIcon = drawerIcon,
+		uninstall = viewModel::uninstall
+	)
+
+	if (isFilterMenuVisible) {
+		BottomSheetDialog(viewModel::hideFilterMenu) {
+			BrowseControllerFilterMenu(viewModel)
+		}
+	}
+
+	if (showUninstallConfirm) {
+		AlertDialog(
+			onDismissRequest = viewModel::dismissUninstall,
+			confirmButton = {
+				TextButton(
+					onClick = viewModel::confirmUninstall
+				) {
+					Text(stringResource(R.string.uninstall))
+				}
+			},
+			dismissButton = {
+				TextButton(
+					onClick = viewModel::dismissUninstall
+				) {
+					Text(stringResource(android.R.string.cancel))
+				}
+			},
+			title = {
+				Text(stringResource(R.string.view_browse_confirm_uninstall_title))
+			},
+			text = {
+				Text(stringResource(R.string.view_browse_confirm_uninstall_desc))
+			}
+		)
+	}
+}
+
+@Preview
+@Composable
+fun PreviewBrowseContent() {
+	BrowseContent(
+		query = "",
+		onSetQuery = {},
+		entities =
+			List(10) {
+				BrowseExtensionUI(
+					it,
+					"Fake a b c",
+					"",
+					"en",
+					installOptions = null,
+					isInstalled = true,
+					installedVersion = Version(1, 1, 1),
+					installedRepo = 1,
+					isUpdateAvailable = false,
+					updateVersion = Version(1, 2, 1),
+					isInstalling = false,
+					isObsolete = false
+				)
+			}.toImmutableList(),
+		refresh = {},
+		openRepositories = {},
+		installExtension = { _, _ -> },
+		uninstall = {},
+		update = {},
+		openCatalogue = {},
+		openSettings = {},
+		cancelInstall = {},
+		hostState = remember { SnackbarHostState() },
+		onOpenFilter = {},
+		onOpenSearch = {},
+		drawerIcon = {},
+	)
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun BrowseContent(
+	query: String,
+	onSetQuery: (String) -> Unit,
+	entities: ImmutableList<BrowseExtensionUI>?,
+	refresh: () -> Unit,
+	openRepositories: () -> Unit,
+	installExtension: (BrowseExtensionUI, ExtensionInstallOptionEntity) -> Unit,
+	uninstall: (BrowseExtensionUI) -> Unit,
+	update: (BrowseExtensionUI) -> Unit,
+	openCatalogue: (BrowseExtensionUI) -> Unit,
+	openSettings: (BrowseExtensionUI) -> Unit,
+	cancelInstall: (BrowseExtensionUI) -> Unit,
+	hostState: SnackbarHostState,
+	onOpenFilter: () -> Unit,
+	onOpenSearch: () -> Unit,
+	drawerIcon: @Composable () -> Unit
+) {
+	val (isRefreshing, pullRefreshState) = rememberFakePullRefreshState(refresh)
+
+	Scaffold(
+		topBar = {
+			TopAppBar(
+				title = {
+					Text(stringResource(R.string.browse))
+				},
+				scrollBehavior = pinnedScrollBehavior(),
+				actions = {
+					SearchAction(
+						query = query,
+						onSearch = onSetQuery,
+						icon = Icons.AutoMirrored.Outlined.ManageSearch
+					)
+					SimpleIconButton(Icons.Default.Search, stringResource(R.string.global_search), onOpenSearch)
+					HelpButton(URL_HELP_BROWSE)
+				},
+				navigationIcon = drawerIcon
+			)
+		},
+		snackbarHost = {
+			SnackbarHost(hostState)
+		},
+		floatingActionButton = {
+			ExtendedFloatingActionButton(
+				text = {
+					Text(stringResource(R.string.filter))
+				},
+				icon = {
+					Icon(Icons.Outlined.FilterList, stringResource(R.string.filter))
+				},
+				onClick = onOpenFilter
+			)
+		},
+	) { padding ->
+		Box(
+			Modifier
+				.pullRefresh(pullRefreshState)
+				.padding(padding)
+		) {
+			if (!entities.isNullOrEmpty()) {
+				val state = rememberLazyListState()
+				LazyColumn(
+					modifier = Modifier.fillMaxSize(),
+					contentPadding = PaddingValues(
+						bottom = 198.dp,
+						top = 4.dp,
+					),
+					state = state,
+					verticalArrangement = Arrangement.spacedBy(4.dp)
+				) {
+					items(entities) { entity ->
+						BrowseExtensionContent(
+							entity,
+							install = {
+								installExtension(entity, it)
+							},
+							update = {
+								update(entity)
+							},
+							openCatalogue = {
+								openCatalogue(entity)
+							},
+							openSettings = {
+								openSettings(entity)
+							},
+							cancelInstall = {
+								cancelInstall(entity)
+							},
+							uninstall = {
+								uninstall(entity)
+							}
+						)
+					}
+				}
+			} else {
+				ErrorContent(
+					R.string.empty_browse_message,
+					actions = arrayOf(
+						ErrorAction(R.string.empty_browse_refresh_action) {
+							refresh()
+						},
+						ErrorAction(R.string.repositories) {
+							openRepositories()
+						}
+					)
+				)
+			}
+
+			PullRefreshIndicator(
+				isRefreshing,
+				pullRefreshState,
+				Modifier.align(Alignment.TopCenter)
+			)
+		}
+	}
+}
+
+@Preview
+@Composable
+fun PreviewBrowseExtensionContent() {
+	BrowseExtensionContent(
+		BrowseExtensionUI(
+			1,
+			"Fake a  aaaaaaaaaaaaaaaaa",
+			"",
+			"en",
+			installOptions = listOf(
+				ExtensionInstallOptionEntity(1, "Wowa", Version(1, 1, 1))
+			),
+			isInstalled = true,
+			installedVersion = Version(1, 1, 1),
+			installedRepo = 1,
+			isUpdateAvailable = true,
+			updateVersion = Version(1, 2, 1),
+			isInstalling = false,
+			isObsolete = false
+		),
+		cancelInstall = {},
+		uninstall = {},
+		install = {},
+		openSettings = {},
+		openCatalogue = {},
+		update = {}
+	)
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationGraphicsApi::class)
+@Composable
+fun BrowseExtensionContent(
+	item: BrowseExtensionUI,
+	install: (ExtensionInstallOptionEntity) -> Unit,
+	update: () -> Unit,
+	uninstall: () -> Unit,
+	openCatalogue: () -> Unit,
+	openSettings: () -> Unit,
+	cancelInstall: () -> Unit
+) {
+	Column(
+		Modifier
+			.combinedClickable(
+				onClick = openCatalogue,
+				onClickLabel = if (item.isInstalled) {
+					stringResource(R.string.view_browse_label_open_catalogue)
+				} else {
+					stringResource(R.string.view_browse_label_cant_open_catalogue)
+				},
+				// Only show long click if installed
+				onLongClick = if (item.isInstalled) uninstall else null,
+				// Only show long click if installed
+				onLongClickLabel = if (item.isInstalled) stringResource(R.string.uninstall) else null
+			)
+			.padding(horizontal = 8.dp)
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(end = 8.dp),
+			horizontalArrangement = Arrangement.SpaceBetween,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				if (item.imageURL.isNotEmpty()) {
+					SubcomposeAsyncImage(
+						ImageRequest.Builder(LocalContext.current)
+							.data(item.imageURL)
+							.crossfade(true)
+							.build(),
+						contentDescription = stringResource(R.string.fragment_browse_ext_icon_desc),
+						modifier = Modifier.size(64.dp),
+						error = {
+							Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+								ImageLoadingError(
+									Modifier
+										.size(52.dp)
+										.clip(MaterialTheme.shapes.extraSmall)
+								)
+							}
+						},
+						loading = {
+							Box(Modifier.placeholder(true))
+						}
+					)
+				} else {
+					Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+						ImageLoadingError(
+							Modifier
+								.size(52.dp)
+								.clip(MaterialTheme.shapes.extraSmall)
+						)
+					}
+				}
+				Column(
+					modifier = Modifier.padding(start = 8.dp)
+				) {
+					Text(item.name)
+					Row {
+						Text(item.displayLang, fontSize = TextUnit(14f, TextUnitType.Sp))
+
+						if (item.isInstalled && item.installedVersion != null)
+							Text(
+								item.installedVersion.toString(),
+								modifier = Modifier.padding(start = 8.dp),
+								fontSize = TextUnit(14f, TextUnitType.Sp)
+							)
+
+						if (item.isUpdateAvailable && item.updateVersion != null) {
+							if (item.updateVersion != Version(-9, -9, -9))
+								Text(
+									stringResource(
+										R.string.update_to,
+										item.updateVersion.toString()
+									),
+									modifier = Modifier.padding(start = 8.dp),
+									fontSize = TextUnit(14f, TextUnitType.Sp),
+									color = MaterialTheme.colorScheme.tertiary
+								)
+						}
+					}
+				}
+			}
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.End
+			) {
+				if (!item.isInstalled && !item.isInstalling && !item.installOptions.isNullOrEmpty()) {
+					var isDropdownVisible by remember { mutableStateOf(false) }
+					SimpleIconButton(
+						Icons.Default.Download,
+						stringResource(R.string.view_browse_label_install_extension, item.name),
+						onClick = {
+							// We can skip to dropdown if there is only 1 install option
+							if (item.installOptions.size != 1)
+								isDropdownVisible = true
+							else install(item.installOptions[0])
+						}
+					)
+					DropdownMenu(
+						expanded = isDropdownVisible,
+						onDismissRequest = { isDropdownVisible = false },
+					) {
+						item.installOptions.forEach { s ->
+							DropdownMenuItem(
+								onClick = {
+									install(s)
+									isDropdownVisible = false
+								},
+								text = {
+									Column {
+										Text(
+											text = AnnotatedString(s.repoName)
+										)
+										Text(
+											text = AnnotatedString(s.version.toString()),
+											modifier = Modifier.padding(start = 8.dp)
+										)
+									}
+								}
+							)
+						}
+					}
+				}
+
+				if (item.isUpdateAvailable) {
+					SimpleIconButton(
+						Icons.Default.Download,
+						stringResource(R.string.update),
+						onClick = update,
+						modifier = Modifier.rotate(180f),
+						tint = MaterialTheme.colorScheme.tertiary
+					)
+				}
+
+				if (item.isInstalled) {
+					SimpleIconButton(
+						Icons.Outlined.Settings,
+						stringResource(R.string.view_browse_label_open_settings, item.name),
+						onClick = openSettings
+					)
+				}
+
+				if (item.isInstalling) {
+					SimpleIconButton(
+						stringResource(R.string.installing),
+						onClick = cancelInstall,
+						modifier = Modifier.combinedClickable(
+							onClick = {},
+							onLongClick = cancelInstall,
+						)
+					) {
+						AnimatedRefresh()
+					}
+				}
+			}
+		}
+
+		if (item.isObsolete) {
+			Box(
+				modifier = Modifier
+					.background(MaterialTheme.colorScheme.tertiary)
+					.fillMaxWidth()
+			) {
+				Text(
+					stringResource(R.string.obsolete_extension),
+					color = MaterialTheme.colorScheme.onPrimary,
+					modifier = Modifier
+						.padding(8.dp)
+						.align(Alignment.Center)
+				)
+			}
+		}
+	}
+}

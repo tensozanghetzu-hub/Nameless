@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shosetsu.app/index.schema.json",
+  "title": "Repository",
+  "description": "Defines a Shosetsu Repository",
+  "type": "object",
+  "properties": {
+    "scripts": {
+      "type": "array",
+      "description": "Libraries that repository includes to share amongst extensions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identification of this extension, this should always be unique"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the extension that is presentable to the user"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "FileName of the extension"
+          },
+          "imageURL": {
+            "type": "string",
+            "description": "Image URL for this extension, for visual identification"
+          },
+          "lang": {
+            "type": "string",
+            "description": "String identification of the language via (ISO 639-1) standard"
+          },
+          "ver": {
+            "type": "string",
+            "description": "Version of this extension"
+          },
+          "libVer": {
+            "type": "string",
+            "description": "Version the extension is compatible with"
+          },
+          "md5": {
+            "type": "string",
+            "description": "MD5 coding of the extension, for security checking"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of extension."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "fileName",
+          "imageURL",
+          "lang",
+          "ver",
+          "libVer"
+        ]
+      }
+    },
+    "libraries": {
+      "type": "array",
+      "description": "Extensions listed in this repository",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the library, this is always the same as the filename"
+          },
+          "ver": {
+            "type": "string",
+            "description": "Version of the library"
+          },
+          "url": {
+            "type": "string",
+            "description": "Remote URL to download the library, useful for different licenses.\nMust be an HTTPS URL, HTTP will conflict with android security rules."
+          },
+          "hash": {
+            "type": "string",
+            "description": "SHA256 Hash of the remote file, to prevent attacks."
+          }
+        },
+        "required": [
+          "name",
+          "ver"
+        ]
+      }
+    },
+    "styles": {
+      "type": "array",
+      "description": "Styles listed in this repository",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Primary key, should be completely unique"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the js file, this is shown to users"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Filename of the css file, used internally by shosetsu"
+          },
+          "ver": {
+            "type": "string",
+            "description": ""
+          },
+          "desc": {
+            "type": "string",
+            "description": "Description of the effects of the js"
+          },
+          "changes": {
+            "type": "string",
+            "description": "Description of recent changes"
+          },
+          "authors": {
+            "type": "array",
+            "description": "Authors who created this",
+            "items": {
+              "type": "number"
+            }
+          },
+          "supported": {
+            "type": "array",
+            "description": "List of explicitly supported extensions",
+            "items": {
+              "type": "number"
+            }
+          },
+          "example": {
+            "type": "boolean",
+            "description": "States if this has an example HTML to show the user"
+          },
+          "js": {
+            "type": "boolean",
+            "description": "Does this style have custom javascript that can be loaded"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "fileName",
+          "ver"
+        ]
+      }
+    },
+    "js": {
+      "type": "array",
+      "description": "Javascript scripts that a user can load",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Primary key, should be completely unique"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the js file, this is shown to users"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Filename of the js file, used internally by shosetsu"
+          },
+          "ver": {
+            "type": "string",
+            "description": ""
+          },
+          "desc": {
+            "type": "string",
+            "description": "Description of the effects of the js"
+          },
+          "changes": {
+            "type": "string",
+            "description": "Description of recent changes"
+          },
+          "authors": {
+            "type": "array",
+            "description": "Authors who created this",
+            "items": {
+              "type": "number"
+            }
+          },
+          "supported": {
+            "type": "array",
+            "description": "List of explicitly supported extensions",
+            "items": {
+              "type": "number"
+            }
+          },
+          "example": {
+            "type": "boolean",
+            "description": "States if this has an example HTML to show the user"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "fileName",
+          "ver"
+        ]
+      }
+    },
+    "authors": {
+      "type": "array",
+      "description": "Libraries that repository includes to share amongst extensions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identification"
+          },
+          "name": {
+            "type": "string",
+            "description": "Your name"
+          },
+          "desc": {
+            "type": "string",
+            "description": "Description of an author"
+          },
+          "imageURL": {
+            "type": "string",
+            "description": "A friendly image to display to users"
+          },
+          "website": {
+            "type": "string",
+            "description": "Website of the author"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    }
+  }
+}

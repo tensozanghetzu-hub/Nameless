@@ -1,0 +1,21 @@
+Shosetsu is the extendable novel reader for Android.
+
+## Features include
+
+- Fully customizable reader.
+- Updating system to keep track of new chapters.
+- Modifable Repositories providing a plateroa of extensions.
+- Material you theming for a wonderful feel and experience.
+- Backup novel progress for safe keeping.
+- Share novels via QRCode easily.
+
+
+## Disclaimer
+	
+	Shosetsu is essentially a web scraper, 
+which can expand its built-in catalog through the use of (shosetsu-extensions)[https://github.com/shosetsu/extensions]. 
+
+	Shosetsu does not, in any way, 
+own copyright over any of the novels present in its catalogs or extensions. 
+All DMCA requests should be forwarded to the original source, as Shosetsu does not host anything. 
+All data is scraped, saved to the users' devices and then displayed.

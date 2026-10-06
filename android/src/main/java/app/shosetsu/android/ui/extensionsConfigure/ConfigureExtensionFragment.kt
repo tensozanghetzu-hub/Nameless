@@ -1,0 +1,403 @@
+package app.shosetsu.android.ui.extensionsConfigure
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
+import androidx.compose.material3.TriStateCheckbox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import app.shosetsu.android.R
+import app.shosetsu.android.common.enums.TriStateState
+import app.shosetsu.android.common.ext.viewModelDi
+import app.shosetsu.android.domain.model.local.FilterEntity
+import app.shosetsu.android.view.compose.ImageLoadingError
+import app.shosetsu.android.view.compose.NavigateBackButton
+import app.shosetsu.android.view.compose.SimpleIconButton
+import app.shosetsu.android.view.compose.placeholder
+import app.shosetsu.android.view.compose.setting.DropdownSettingContent
+import app.shosetsu.android.view.compose.setting.StringSettingContent
+import app.shosetsu.android.view.compose.setting.widget.ListPreferenceWidget
+import app.shosetsu.android.view.compose.setting.widget.SwitchPreferenceWidget
+import app.shosetsu.android.view.uimodels.model.InstalledExtensionUI
+import app.shosetsu.android.viewmodel.abstracted.AExtensionConfigureViewModel
+import app.shosetsu.lib.ExtensionType
+import app.shosetsu.lib.Novel
+import app.shosetsu.lib.Version
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
+import kotlin.random.Random
+
+/*
+ * This file is part of shosetsu.
+ *
+ * shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * shosetsu
+ * 21 / 01 / 2020
+ *
+ * Opens up detailed view of an extension, allows modifications
+ */
+
+@Composable
+fun ConfigureExtensionView(
+	extensionId: Int,
+	viewModel: AExtensionConfigureViewModel = viewModelDi(),
+	onExit: () -> Unit
+) {
+	LaunchedEffect(extensionId) {
+		viewModel.setExtensionID(extensionId)
+	}
+
+	ConfigureExtensionContent(
+		viewModel,
+		onExit
+	)
+}
+
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun ConfigureExtensionContent(
+	viewModel: AExtensionConfigureViewModel,
+	onBack: () -> Unit
+) {
+	val extensionUIResult by viewModel.liveData.collectAsState()
+	val extensionListingResult by viewModel.extensionListing.collectAsState()
+	val extensionSettingsResult by viewModel.extensionSettings.collectAsState()
+	val errors by viewModel.errors.collectAsState(null)
+
+	// for snackbars
+	val hostState = remember { SnackbarHostState() }
+	val scope = rememberCoroutineScope()
+
+	// If there is an error, display it as a snackbar
+	LaunchedEffect(errors) {
+		val errors = errors
+		if (errors != null) {
+			scope.launch {
+				hostState.showSnackbar(errors.message ?: "Unknown Error")
+			}
+		}
+	}
+
+	Scaffold(
+		snackbarHost = { SnackbarHost(hostState) },
+		topBar = {
+			TopAppBar(
+				title = {
+					Text(stringResource(R.string.view_title_configure))
+				},
+				navigationIcon = {
+					NavigateBackButton(onBack)
+				},
+				scrollBehavior = pinnedScrollBehavior()
+			)
+		}
+	) { paddingValues ->
+		LazyColumn(
+			state = rememberLazyListState(),
+			contentPadding = PaddingValues(bottom = 8.dp),
+			modifier = Modifier.padding(paddingValues)
+		) {
+			stickyHeader(1000000) {
+				if (extensionUIResult != null) {
+					ConfigureExtensionHeaderContent(extensionUIResult!!) {
+						viewModel.uninstall(extensionUIResult!!)
+						onBack()
+					}
+				}
+			}
+
+			if (extensionListingResult != null && extensionListingResult!!.choices.size > 1) {
+				item {
+					val selection = extensionListingResult!!.selection.takeIf { it != -1 } ?: 0
+					val choices = extensionListingResult!!.choices
+					ListPreferenceWidget(
+						title = stringResource(R.string.listings),
+						subtitle = stringResource(
+							R.string.fragment_configure_extension_listing_desc,
+							choices[selection]
+						),
+						icon = null,
+						value = selection,
+						entries = choices.withIndex().associate { it.index to it.value },
+						onValueChange = { viewModel.setSelectedListing(it) },
+						iconDescription = null
+					)
+				}
+			}
+
+			SettingsItemAsCompose(this, viewModel, extensionSettingsResult)
+		}
+	}
+}
+
+@Suppress("FunctionName")
+fun SettingsItemAsCompose(
+	column: LazyListScope,
+	viewModel: AExtensionConfigureViewModel,
+	list: List<FilterEntity>
+) {
+	list.forEach { data ->
+		when (data) {
+			is FilterEntity.Header -> {
+				column.item(Random.nextInt() + 1000000) {
+					Row(
+						modifier = Modifier.fillMaxWidth()
+					) {
+						Text(data.name)
+						HorizontalDivider()
+					}
+				}
+			}
+
+			is FilterEntity.Separator -> {
+				column.item(Random.nextInt() + 1000000) {
+					HorizontalDivider()
+				}
+			}
+
+			is FilterEntity.Text -> {
+				column.item(data.id) {
+					StringSettingContent(
+						data.name,
+						"",
+						data.state,
+						onValueChanged = { value ->
+							viewModel.saveSetting(data.id, value)
+						},
+						modifier = Modifier.fillMaxWidth()
+					)
+				}
+			}
+
+			is FilterEntity.Switch -> {
+				column.item(data.id) {
+					SwitchPreferenceWidget(
+						title = data.name,
+						subtitle = "",
+						checked = data.state,
+						modifier = Modifier.fillMaxWidth(),
+						onCheckedChanged = { newValue ->
+							viewModel.saveSetting(data.id, newValue)
+						},
+						iconDescription = null
+					)
+				}
+			}
+
+			is FilterEntity.TriState -> {
+				column.item(data.id) {
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.SpaceBetween
+					) {
+						Text(text = data.name)
+						TriStateCheckbox(
+							state = when (data.state) {
+								TriStateState.CHECKED -> ToggleableState.On
+								TriStateState.UNCHECKED -> ToggleableState.Indeterminate
+								else -> ToggleableState.Off
+							},
+							onClick = {
+								viewModel.saveSetting(data.id, data.state.cycle(false).name)
+							}
+						)
+					}
+				}
+			}
+
+			is FilterEntity.Dropdown -> {
+				column.item(data.id) {
+					DropdownSettingContent(
+						title = data.name,
+						description = "",
+						choices = data.choices.toImmutableList(),
+						selection = data.selected,
+						onSelection = { index ->
+							viewModel.saveSetting(data.id, index)
+						},
+						modifier = Modifier.fillMaxWidth()
+					)
+				}
+			}
+
+			is FilterEntity.FList -> {
+				column.item(Random.nextInt() + 1000000) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+					) {
+						Text(data.name)
+						HorizontalDivider()
+					}
+				}
+				SettingsItemAsCompose(column, viewModel, data.filters.toList())
+			}
+
+			is FilterEntity.Group -> {
+				SettingsItemAsCompose(column, viewModel, data.filters.toList())
+			}
+
+			is FilterEntity.Checkbox -> {
+				column.item(data.id) {
+					SwitchPreferenceWidget(
+						title = data.name,
+						subtitle = "",
+						checked = data.state,
+						modifier = Modifier.fillMaxWidth(),
+						onCheckedChanged = { newValue ->
+							viewModel.saveSetting(data.id, newValue)
+						},
+						iconDescription = null
+					)
+				}
+			}
+
+			is FilterEntity.RadioGroup -> {
+				column.item(data.id) {
+					DropdownSettingContent(
+						title = data.name,
+						description = "",
+						choices = data.choices.toImmutableList(),
+						selection = data.selected,
+						onSelection = { index ->
+							viewModel.saveSetting(data.id, index)
+						},
+						modifier = Modifier.fillMaxWidth()
+					)
+				}
+			}
+		}
+	}
+}
+
+@Preview
+@Composable
+fun PreviewConfigureExtensionHeaderContent() {
+	ConfigureExtensionHeaderContent(
+		InstalledExtensionUI(
+			1,
+			1,
+			"This is an extension",
+			"fileName",
+			"",
+			"en",
+			version = Version(1, 0, 0),
+			md5 = "",
+			type = ExtensionType.LuaScript,
+			enabled = true,
+			chapterType = Novel.ChapterType.HTML
+		)
+	) {
+
+	}
+}
+
+@Composable
+fun ConfigureExtensionHeaderContent(
+	extension: InstalledExtensionUI,
+	onUninstall: () -> Unit
+) {
+	Card {
+		Row(
+			modifier = Modifier.fillMaxWidth(),
+			horizontalArrangement = Arrangement.SpaceBetween,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				if (extension.imageURL.isNotEmpty()) {
+					SubcomposeAsyncImage(
+						ImageRequest.Builder(LocalContext.current)
+							.data(extension.imageURL)
+							.crossfade(true)
+							.build(),
+						contentDescription = stringResource(R.string.extension_image_desc),
+						modifier = Modifier.size(100.dp),
+						error = {
+							ImageLoadingError()
+						},
+						loading = {
+							Box(Modifier.placeholder(true))
+						}
+					)
+				} else {
+					Box(Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+						ImageLoadingError(
+							Modifier
+								.size(80.dp)
+								.clip(MaterialTheme.shapes.extraSmall)
+						)
+					}
+				}
+
+				Column {
+					Text(extension.name)
+					Row(
+						horizontalArrangement = Arrangement.SpaceBetween,
+					) {
+						Text(extension.id.toString())
+						Text(extension.fileName, modifier = Modifier.padding(start = 16.dp))
+					}
+					Text(extension.displayLang)
+				}
+			}
+
+			SimpleIconButton(
+				Icons.Default.Delete,
+				stringResource(R.string.uninstall),
+				onClick = onUninstall,
+			)
+		}
+	}
+}

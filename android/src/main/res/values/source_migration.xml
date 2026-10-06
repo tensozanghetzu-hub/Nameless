@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nameless source migration, modified 2026-10-05. GPL-3.0. -->
+<resources>
+    <string name="source_migration_title">Migrate source</string>
+    <string name="source_migration_back">Back</string>
+    <string name="source_migration_selected">Selected novel</string>
+    <string name="source_migration_choose_source">1. Choose a destination source</string>
+    <string name="source_migration_filter_sources">Filter installed sources</string>
+    <string name="source_migration_refresh">Refresh sources</string>
+    <string name="source_migration_no_sources">No enabled sources are installed. Install or enable a working extension in Browse, then return here.</string>
+    <string name="source_migration_no_filter_match">No installed sources match this filter.</string>
+    <string name="source_migration_search_title">2. Find the same novel</string>
+    <string name="source_migration_query">Novel title</string>
+    <string name="source_migration_search">Search</string>
+    <string name="source_migration_results">Results for “%1$s”</string>
+    <string name="source_migration_no_results">No matching novels were found. Try a shorter title, another source, or paste the novel URL below.</string>
+    <string name="source_migration_more">Load more results</string>
+    <string name="source_migration_url_heading">Or use a direct novel URL</string>
+    <string name="source_migration_url_label">https://source.example/novel/…</string>
+    <string name="source_migration_load_url">Load novel URL</string>
+    <string name="source_migration_url_hint">Use a full novel-page URL from the selected source, not a chapter URL.</string>
+    <string name="source_migration_review_title">3. Review and confirm</string>
+    <string name="source_migration_from">From: %1$s</string>
+    <string name="source_migration_to">To: %1$s</string>
+    <string name="source_migration_author">Authors: %1$s</string>
+    <string name="source_migration_target_in_library">This destination is already in your library. Existing progress and bookmarks will be merged, never reset.</string>
+    <string name="source_migration_chapter_counts">Chapters: %1$d on the original · %2$d on the destination</string>
+    <string name="source_migration_matches">Matched: %1$d chapters · %2$d read · %3$d in progress · %4$d bookmarked</string>
+    <string name="source_migration_unmatched">%1$d chapters with progress or bookmarks could not be matched. Their data will stay on the original source, which must remain in your library.</string>
+    <string name="source_migration_no_unmatched">All cached reading progress and chapter bookmarks can be matched.</string>
+    <string name="source_migration_keep_original">Keep original in library</string>
+    <string name="source_migration_keep_hint">Recommended until you have verified the new source. Turning this off removes only the old library bookmark, not its saved chapter records.</string>
+    <string name="source_migration_by_position">Also match unmatched chapters by list position</string>
+    <string name="source_migration_position_warning">Only enable this if both chapter lists have the same ordering. Extra chapters, split parts or missing chapters can make positional matching inaccurate.</string>
+    <string name="source_migration_positional_count">%1$d matches use list position rather than a unique number or title.</string>
+    <string name="source_migration_download_warning">%1$d original downloads stay on the original source. They are not moved to new URLs; download destination chapters separately for offline reading.</string>
+    <string name="source_migration_preserved">Library categories, pinned status and per-novel reader settings are copied. Matched chapter progress, bookmarks and reading history are merged. Unmatched progress is not guessed.</string>
+    <string name="source_migration_confirm">Confirm migration</string>
+    <string name="source_migration_done">Migration completed</string>
+    <string name="source_migration_done_summary">%1$s is now in your library on the chosen source. %2$d read chapters and %3$d bookmarks were matched.</string>
+    <string name="source_migration_kept">The original remains in your library.</string>
+    <string name="source_migration_replaced">The original is no longer in the library. Its chapter records were not deleted.</string>
+    <string name="source_migration_open">Open destination novel</string>
+    <string name="source_migration_next">Migrate next selected novel</string>
+    <string name="source_migration_finish">Return</string>
+    <string name="source_migration_completed_count">%1$d / %2$d completed</string>
+    <string name="source_migration_retry">Retry loading</string>
+    <string name="source_migration_error_hint">If the destination blocks requests, open it in Browse/WebView to sign in or verify Cloudflare, then try again. No original data is changed on failure.</string>
+</resources>

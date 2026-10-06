@@ -1,0 +1,50 @@
+package app.shosetsu.android.datasource.local.memory
+
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.M
+import app.shosetsu.android.datasource.local.memory.base.ICache
+import app.shosetsu.android.datasource.local.memory.base.IMemChaptersDataSource
+import app.shosetsu.android.datasource.local.memory.base.IMemExtLibDataSource
+import app.shosetsu.android.datasource.local.memory.base.IMemExtensionsDataSource
+import app.shosetsu.android.datasource.local.memory.impl.ConCacheFactory
+import app.shosetsu.android.datasource.local.memory.impl.GuavaCacheFactory
+import app.shosetsu.android.datasource.local.memory.impl.MemChaptersDataSource
+import app.shosetsu.android.datasource.local.memory.impl.MemExtLibDataSource
+import app.shosetsu.android.datasource.local.memory.impl.MemExtensionDataSource
+import org.kodein.di.DI
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.singleton
+
+/*
+ * This file is part of shosetsu.
+ *
+ * shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * shosetsu
+ * 04 / 05 / 2020
+ * These modules handle cached data that is in memory
+ */
+val memoryDataSourceModule: DI.Module = DI.Module("cache_data_source") {
+	bind<ICache.Factory>() with singleton {
+		if (SDK_INT <= M) ConCacheFactory()
+		else GuavaCacheFactory()
+	}
+
+	bind<IMemChaptersDataSource>() with singleton { MemChaptersDataSource(instance()) }
+	bind<IMemExtensionsDataSource>() with singleton { MemExtensionDataSource(instance()) }
+	bind<IMemExtLibDataSource>() with singleton { MemExtLibDataSource(instance()) }
+}

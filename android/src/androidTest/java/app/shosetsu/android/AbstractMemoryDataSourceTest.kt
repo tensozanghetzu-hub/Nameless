@@ -1,0 +1,61 @@
+package app.shosetsu.android
+
+import app.shosetsu.android.datasource.local.memory.base.ICache
+import app.shosetsu.android.datasource.local.memory.impl.ConCacheFactory
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.future
+import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
+
+/*
+ * This file is part of Shosetsu.
+ *
+ * Shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * 13 / 02 / 2021
+ */
+class AbstractMemoryDataSourceTest {
+
+	private val source: ICache<Int, String> = ConCacheFactory().create(5.seconds, maxSize = 100)
+
+	@OptIn(DelicateCoroutinesApi::class)
+	@ExperimentalTime
+	@Test
+	fun main() {
+		GlobalScope.future {
+			// fill data
+			println("Time to input 100 chapters: " + measureTime {
+				for (i in 0 until 100)
+					source[i] = i.toString()
+			})
+			delay(6.seconds)
+			println("Putting 1 in to override old time")
+			source[111] = "a"
+
+			println("Time to get with a full recycle: " + measureTime {
+				println("Value: " + source[111])
+			})
+
+			println("Time to to get when clean: " + measureTime {
+				println("Value: " + source[111])
+			})
+		}.join()
+	}
+}

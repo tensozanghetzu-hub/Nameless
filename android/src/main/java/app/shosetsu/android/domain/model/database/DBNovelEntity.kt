@@ -1,0 +1,101 @@
+package app.shosetsu.android.domain.model.database
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import app.shosetsu.android.domain.model.local.NovelEntity
+import app.shosetsu.android.dto.Convertible
+import app.shosetsu.lib.Novel
+import app.shosetsu.lib.Novel.Info
+
+/*
+ * This file is part of Shosetsu.
+ *
+ * Shosetsu is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Shosetsu is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Shosetsu.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * shosetsu
+ * @since 05 / 12 / 2020
+ *
+ * @param url [Info.link]
+ * @param title [Info.title]
+ * @param imageURL [Info.imageURL]
+ * @param description [Info.description]
+ * @param language [Info.language]
+ * @param genres [Info.genres]
+ * @param authors [Info.authors]
+ * @param artists [Info.artists]
+ * @param tags [Info.tags]
+ * @param status [Info.status]
+ */
+@Entity(
+	tableName = "novels",
+	indices = [
+		Index(value = ["url", "formatterID"], unique = true)
+	]
+)
+data class DBNovelEntity(
+	@PrimaryKey(autoGenerate = true)
+	/** ID of this novel */
+	var id: Int? = null,
+
+	var url: String,
+
+	/** Source this novel is from */
+	@ColumnInfo(name = "formatterID")
+	val extensionID: Int,
+
+	/** If this novel is in the user's library */
+	var bookmarked: Boolean = false,
+
+	/** Says if the data is loaded or now, if it is not it needs to be loaded */
+	var loaded: Boolean = false,
+
+	var title: String,
+
+	var imageURL: String = "",
+
+	var description: String = "",
+
+	var language: String = "",
+
+	var genres: List<String> = emptyList(),
+
+	var authors: List<String> = emptyList(),
+
+	var artists: List<String> = emptyList(),
+
+	var tags: List<String> = emptyList(),
+
+	var status: Novel.Status = Novel.Status.UNKNOWN,
+) : Convertible<NovelEntity> {
+	override fun convertTo(): NovelEntity = NovelEntity(
+		id,
+		url,
+		extensionID,
+		bookmarked,
+		loaded,
+		title,
+		imageURL,
+		description,
+		language,
+		genres,
+		authors,
+		artists,
+		tags,
+		status
+	)
+}
