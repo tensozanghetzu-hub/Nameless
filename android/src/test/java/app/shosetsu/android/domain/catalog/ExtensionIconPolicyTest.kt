@@ -14,6 +14,11 @@ class ExtensionIconPolicyTest {
         )
     }
 
+    @Test fun rewritesTheRetiredSkyMtlLogoToTheVerifiedNovelRareBrandIcon() {
+        val old = "https://sky-mtl.com/wp-content/uploads/2017/10/10.png"
+        assertEquals(listOf(old, ExtensionIconPolicy.CURRENT_NOVELRARE_ICON), policy.candidates(old))
+    }
+
     @Test fun rewritesAllPublishedFilenameCharactersUsedByOfficialIcons() {
         for (name in listOf("NovLove.png", "NovelFullNET.png", "SpaceBattles-2.png", "icon_1.webp")) {
             val url = "https://shosetsuorg.gitlab.io/extensions/icons/$name"

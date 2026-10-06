@@ -10,6 +10,7 @@ import java.util.LinkedHashSet
 object ExtensionIconPolicy {
     const val LEGACY_GITLAB_PAGES_HOST = "shosetsuorg.gitlab.io"
     const val CURRENT_EXTENSION_ICON_PREFIX = "https://gitlab.com/shosetsuorg/extensions/-/raw/dev/icons/"
+    const val CURRENT_NOVELRARE_ICON = "https://novelrare.com/wp-content/uploads/2026/09/novelrare-icon-512-1-300x300.webp"
 
     /**
      * Prefer the icon from the same repository as an installed source. This lets
@@ -36,9 +37,12 @@ object ExtensionIconPolicy {
         val source = URI(normalized)
         val result = LinkedHashSet<String>()
         result += normalized
+        val sourceIconMove = movedSourceIcon(source)
+        sourceIconMove?.let(result::add)
         officialRepositoryMove(source)?.let(result::add)
 
-        if (isPublicHostname(source.host) && !isRetiredGitLabPagesHost(source.host) && !isHostedMetadataHost(source.host)) {
+        if (isPublicHostname(source.host) && !isRetiredGitLabPagesHost(source.host) &&
+            sourceIconMove == null && !isHostedMetadataHost(source.host)) {
             val secureOrigin = origin(source, preferHttps = true)
             if (secureOrigin != null) {
                 result += "$secureOrigin/favicon.ico"
@@ -60,6 +64,16 @@ object ExtensionIconPolicy {
             uri.rawPath.isNullOrBlank()) return null
         return uri.toASCIIString()
     }
+
+    /** The Sky-mtl source now points at NovelRare, while its catalog image still
+     * advertises the dead sky-mtl.com asset. Use the current site's checked icon.
+     */
+    private fun movedSourceIcon(source: URI): String? =
+        if (source.scheme.equals("https", ignoreCase = true) &&
+            source.host.equals("sky-mtl.com", ignoreCase = true) &&
+            source.rawPath == "/wp-content/uploads/2017/10/10.png") {
+            CURRENT_NOVELRARE_ICON
+        } else null
 
     private fun officialRepositoryMove(source: URI): String? {
         val path = source.rawPath ?: return null

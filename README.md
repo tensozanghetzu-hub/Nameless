@@ -51,4 +51,4 @@ Release v56 makes the new-source catalog English-only while retaining installed 
 
 ## Extension avatars
 
-The v57 loader repairs the retired official GitLab Pages icon URLs and tries same-site favicon fallback for broken image hosts. Installed-source records and all reading data are preserved. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md).
+The v58 loader includes the v57 retired-GitLab icon repair, a checked NovelRare icon fallback for the moved Sky-mtl logo, and limited same-site favicon retries. Installed sources and all reading data are preserved. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md) and the [official catalog health report](EXTENSION-CATALOG-TESTS.md).

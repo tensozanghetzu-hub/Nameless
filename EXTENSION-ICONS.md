@@ -1,6 +1,6 @@
 # Extension avatar/icon repair
 
-Nameless release v57 (`2.5.3-nameless.8`), prepared 2026-10-06.
+Nameless release v58 (`2.5.3-nameless.9`), prepared 2026-10-06.
 
 ## Observed upstream failure
 
@@ -9,6 +9,7 @@ Fetched the live official `extensions/-/raw/dev/index.json` from the current ext
 ## Changes
 
 - Browse avatar loading retries with the official GitLab raw icon location for the known legacy GitLab Pages path. Existing, working icon URLs are still tried first.
+- v58 also maps the dead Sky-mtl logo URL to the verified current NovelRare brand icon; the Sky-mtl extension itself already points to `novelrare.com`.
 - Former GitHub-raw icon links from this official repository are also retried at the current GitLab raw location.
 - For otherwise broken direct-site logos, the loader tries same-origin HTTPS `favicon.ico` and `apple-touch-icon.png`. It never substitutes GitLab's favicon for an extension-specific image, and it skips favicon requests to the retired Pages host that redirects to sign-in.
 - Image requests include only the image host's origin as a minimal Referer, for source sites that reject hotlinked image requests. No third-party image proxy, account token, downloaded-image bundle or new host is introduced.
@@ -18,6 +19,6 @@ Fetched the live official `extensions/-/raw/dev/index.json` from the current ext
 
 ## Regression tests and limitations
 
-16 policy tests cover the retired GitLab Pages host, old GitHub host, candidate ordering, safe URL acceptance/rejection, public-host-only favicon fallback, privacy of URL queries, and current-vs-cached icon metadata selection. I also checked all 14 legacy GitLab Pages image entries currently advertised for English sources: each old URL redirects/returns 403 HTML, while the corresponding GitLab raw icon currently returns HTTP 200 `image/png`.
+17 policy tests cover retired/renamed icon URLs, the old GitHub host, candidate ordering, safe URL acceptance/rejection, public-host-only favicon fallback, privacy of URL queries, and current-vs-cached icon metadata selection. I also checked all 14 legacy GitLab Pages image entries currently advertised for English sources: each old URL redirects/returns 403 HTML, while the corresponding GitLab raw icon currently returns HTTP 200 `image/png`.
 
-This fixes **known catalog links and common hotlink/favicons**, not every third-party website. Dead domains, Cloudflare/captcha pages that return HTTP 200 HTML, server-side anti-hotlink rules, or absent artwork can still use the placeholder. There is no physical-phone visual verification until the user installs and checks v57. The release CI validates code/tests and the GitHub signed release process.
+This fixes **known catalog links and common hotlink/favicons**, not every third-party website. Dead domains, Cloudflare/captcha pages that return HTTP 200 HTML, server-side anti-hotlink rules, or absent artwork can still use the placeholder. There is no physical-phone visual verification until the user installs and checks v58. The release CI validates code/tests and the GitHub signed release process.

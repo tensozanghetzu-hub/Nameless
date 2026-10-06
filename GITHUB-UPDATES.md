@@ -1,6 +1,6 @@
 # Nameless GitHub updater and release workflow
 
-Updated for Nameless v57 (`2.5.3-nameless.8`) on 2026-10-06. The updater was introduced at bootstrap versionCode **54**. Target repository: **tensozanghetzu-hub/Nameless**. Original GPL-3.0 licensing, attribution and corresponding core-library source are retained.
+Updated for Nameless v58 (`2.5.3-nameless.9`) on 2026-10-06. The updater was introduced at bootstrap versionCode **54**. Target repository: **tensozanghetzu-hub/Nameless**. Original GPL-3.0 licensing, attribution and corresponding core-library source are retained.
 
 ## Implementation
 
@@ -23,7 +23,7 @@ Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The workspace connection and signing 
 
 ## Validation scope
 
-- **108 Android automated tests passed**, zero failures/errors/skips: 34 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, and 17 reader/inset tests.
+- The Android CI/release suite covers **109 tests**: 35 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, and 17 reader/inset tests. Confirm pass/fail on the exact GitHub workflow run before publication.
 - **8 Python release/source-packaging tests passed**, including version validation, secret exclusion, symlink exclusion and required GPL/source files.
 - GitHub workflow YAML structure and actionlint validation passed locally.
 - Release/signing/package/source-archive checks are recorded with the delivered build.
