@@ -20,6 +20,20 @@ fi
 # Local Git config may be refreshed on a later workspace session. Credential
 # values stay outside this source tree and are returned only to Git for THIS repo.
 git config --local credential.useHttpPath true
+git config --local core.fileMode false
+# Also restore the authenticated account's private GitHub noreply identity when
+# local .git/config was reset; this reads metadata, never prints the token.
+python3 - <<'PYAUTH'
+import json, subprocess
+from pathlib import Path
+from tools.github_workspace_auth import TOKEN, REPOSITORY
+if TOKEN.is_file():
+    account = json.loads(TOKEN.read_text())
+    if account.get('repository') == REPOSITORY:
+        subprocess.run(['git', 'config', '--local', 'user.name', account['login']], check=True)
+        subprocess.run(['git', 'config', '--local', 'user.email',
+                        f"{account['user_id']}+{account['login']}@users.noreply.github.com"], check=True)
+PYAUTH
 git config --local 'credential.https://github.com/tensozanghetzu-hub/Nameless.git.helper' "!python3 '$PWD/tools/github_workspace_auth.py' git-credential"
 printf 'Source repository linked to %s\n' "$remote"
 printf 'Authentication and an explicit commit/push are still required. Never add the signing folder.\n'
