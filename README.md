@@ -51,4 +51,4 @@ Release v56 makes the new-source catalog English-only while retaining installed 
 
 ## Extension avatars
 
-The v58 loader includes the v57 retired-GitLab icon repair, a checked NovelRare icon fallback for the moved Sky-mtl logo, and limited same-site favicon retries. The v59 candidate makes bulk library updates foreground work and saves a per-novel checkpoint so interrupted runs can resume. Installed sources and all reading data are preserved. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md) and the [official catalog health report](EXTENSION-CATALOG-TESTS.md).
+The v58 loader includes the v57 retired-GitLab icon repair, a checked NovelRare icon fallback for the moved Sky-mtl logo, and limited same-site favicon retries. v59 makes bulk library updates foreground work and saves a per-novel checkpoint so interrupted runs can resume. Installed sources and all reading data are preserved. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md) and the [official catalog health report](EXTENSION-CATALOG-TESTS.md).

@@ -24,7 +24,7 @@ Follow [GITHUB-SETUP.md](GITHUB-SETUP.md). The workspace connection and signing 
 
 ## Validation scope
 
-- The v58 baseline passed **109 Android automated tests**. The v59 candidate adds 4 checkpoint-policy tests; confirm the exact v59 CI run passes all **113 tests** and builds the unsigned release before publication.
+- **113 Android automated tests passed**: 35 catalog/icon policy tests, 26 migration tests, 31 updater policy/datasource tests, 17 reader/inset tests, and 4 novel-update resume-policy tests. The v59 unsigned standard release also built successfully in [candidate CI](https://github.com/tensozanghetzu-hub/Nameless/actions/runs/38304140379).
 - **8 Python release/source-packaging tests passed**, including version validation, secret exclusion, symlink exclusion and required GPL/source files.
 - GitHub workflow YAML structure and actionlint validation passed locally.
 - Release/signing/package/source-archive checks are recorded with the delivered build.
