@@ -31,8 +31,8 @@ The original novel reader, library, downloads, extension repositories, backups, 
 
 ## APK configuration
 
-- Current release version name: `2.5.3-nameless.9`
-- Current release version code: `58`
+- Current release version name: `2.5.3-nameless.10`
+- Current release version code: `59`
 - Minimum Android API: `22` (Android 5.1)
 - Target and compile Android API: `36`
 - Variant: `standardRelease`
@@ -98,4 +98,4 @@ Bootstrap versionCode 54 added a repository-specific, verified updater and GitHu
 
 ## Extension avatars
 
-The v58 extension-avatar loader includes the v57 retired GitLab Pages repairs and adds the checked NovelRare icon for the moved Sky-mtl logo. Installed-source display prefers refreshed repository metadata. The official English catalog and its extension scripts were health-checked; website-side blocks, outages, and upstream metadata defects are documented rather than bypassed. Existing installed sources and all reading data remain intact. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md) and [EXTENSION-CATALOG-TESTS.md](EXTENSION-CATALOG-TESTS.md).
+The v58 extension-avatar loader includes the v57 retired GitLab Pages repairs and adds the checked NovelRare icon for the moved Sky-mtl logo. The v59 candidate runs bulk novel updates as a user-visible long-running task and checkpoints completed titles, so an interrupted batch can resume instead of always restarting at the beginning. The official English catalog and its extension scripts were health-checked; website-side blocks, outages, and upstream metadata defects are documented rather than bypassed. Existing installed sources and all reading data remain intact. See [EXTENSION-ICONS.md](EXTENSION-ICONS.md) and [EXTENSION-CATALOG-TESTS.md](EXTENSION-CATALOG-TESTS.md).

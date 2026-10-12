@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_ONE_SHOT
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
@@ -19,12 +20,14 @@ import androidx.core.os.bundleOf
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.Data
-import androidx.work.ExistingWorkPolicy.REPLACE
+import androidx.work.ExistingWorkPolicy.KEEP
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType.CONNECTED
 import androidx.work.NetworkType.UNMETERED
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.Operation
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import app.shosetsu.android.R
 import app.shosetsu.android.backend.receivers.NotificationBroadcastReceiver
@@ -68,6 +71,7 @@ import app.shosetsu.android.domain.model.local.ChapterEntity
 import app.shosetsu.android.domain.model.local.LibraryNovelEntity
 import app.shosetsu.android.domain.repository.base.INovelsRepository
 import app.shosetsu.android.domain.repository.base.ISettingsRepository
+import app.shosetsu.android.domain.update.NovelUpdateResumePolicy
 import app.shosetsu.android.domain.usecases.StartDownloadWorkerAfterUpdateUseCase
 import app.shosetsu.android.domain.usecases.get.GetRemoteNovelUseCase
 import app.shosetsu.android.ui.reader.ChapterReader
@@ -146,6 +150,18 @@ class NovelUpdateWorker(
 			.setContentText("Update in progress")
 			.setOnlyAlertOnce(true)
 
+	private fun foregroundInfo(): ForegroundInfo {
+		val notification = baseNotificationBuilder.apply {
+			setContentText(applicationContext.getString(R.string.update))
+			setOngoing()
+			addCancelAction()
+		}.build()
+		val serviceType = if (SDK_INT >= VERSION_CODES.Q) {
+			ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+		} else 0
+		return ForegroundInfo(defaultNotificationID, notification, serviceType)
+	}
+
 	override val di: DI by closestDI(appContext)
 
 	private val iNovelsRepository: INovelsRepository by instance()
@@ -177,7 +193,15 @@ class NovelUpdateWorker(
 	private suspend fun setLastUpdatedTimestamp(value: Long) =
 		iSettingsRepository.setLong(SettingKey.NovelUpdateLastTimestamp, value)
 
+	private suspend fun checkpointNovel(novelId: Int) {
+		setProgress(Data.Builder().putInt(KEY_LAST_COMPLETED_NOVEL_ID, novelId).build())
+	}
+
 	override suspend fun doWork(): Result {
+		// This is a user-requested library scan that may take longer than WorkManager's
+		// normal execution window (some sources paginate very large chapter lists).
+		setForeground(foregroundInfo())
+
 		// Log that the worker is executing
 		logI(SERVICE_EXECUTE)
 
@@ -221,9 +245,15 @@ class NovelUpdateWorker(
 			list.distinctBy { it.id }
 				.sortedBy { it.title }
 		}.let { novels ->
-			var progress = 0
+			val lastCompletedNovelId = WorkManager.getInstance(applicationContext)
+				.getWorkInfoById(id)
+				.await()
+				?.progress
+				?.getInt(KEY_LAST_COMPLETED_NOVEL_ID, -1)
+				?.takeIf { it >= 0 }
+			var progress = NovelUpdateResumePolicy.nextIndex(novels.map { it.id }, lastCompletedNovelId)
 
-			for (nE in novels) {
+			for (nE in novels.drop(progress)) {
 				if (isStopped) break
 
 				val style = notificationStyle()
@@ -265,6 +295,10 @@ class NovelUpdateWorker(
 						addCancelAction()
 						this.priority = NotificationCompat.PRIORITY_HIGH
 					}
+					if (!isStopped) {
+						progress++
+						checkpointNovel(nE.id)
+					}
 					continue
 				} catch (e: HTTPException) {
 					logE("Failed to load novel: $nE", e)
@@ -283,6 +317,10 @@ class NovelUpdateWorker(
 						removeProgress()
 						addCancelAction()
 						this.priority = NotificationCompat.PRIORITY_HIGH
+					}
+					if (!isStopped) {
+						progress++
+						checkpointNovel(nE.id)
 					}
 					continue
 				} catch (e: IOException) {
@@ -303,6 +341,10 @@ class NovelUpdateWorker(
 						addCancelAction()
 						this.priority = NotificationCompat.PRIORITY_HIGH
 					}
+					if (!isStopped) {
+						progress++
+						checkpointNovel(nE.id)
+					}
 					continue
 				} catch (e: Exception) {
 					if (e is CancellationException) {
@@ -318,7 +360,7 @@ class NovelUpdateWorker(
 							getString(
 								R.string.worker_novel_update_load_failure,
 								nE.title
-							)
+						)
 						)
 
 						setNotOngoing()
@@ -332,6 +374,10 @@ class NovelUpdateWorker(
 							e
 						)
 					}
+					if (!isStopped) {
+						progress++
+						checkpointNovel(nE.id)
+					}
 					continue
 				}
 				if (it != null)
@@ -340,8 +386,11 @@ class NovelUpdateWorker(
 						updatedChapters.addAll(it.updatedChapters)
 					}
 				//TODO Handle null
-				progress++
-			}
+				if (!isStopped) {
+					progress++
+					checkpointNovel(nE.id)
+				}
+				}
 
 			if (categoryID < 0) setLastUpdatedTimestamp(Instant.now().toEpochMilli())
 
@@ -492,7 +541,7 @@ class NovelUpdateWorker(
 				logI(LogConstants.SERVICE_NEW)
 				workerManager.enqueueUniqueWork(
 					UPDATE_WORK_ID,
-					REPLACE,
+					KEEP,
 					OneTimeWorkRequestBuilder<NovelUpdateWorker>().setConstraints(
 						Constraints.Builder().apply {
 							setRequiredNetworkType(
@@ -524,5 +573,6 @@ class NovelUpdateWorker(
 		const val ACTION_CANCEL_NOVEL_UPDATE = "shosetsu_action_cancel_novel_update"
 
 		const val KEY_CATEGORY: String = "category"
+		const val KEY_LAST_COMPLETED_NOVEL_ID: String = "last_completed_novel_id"
 	}
 }
